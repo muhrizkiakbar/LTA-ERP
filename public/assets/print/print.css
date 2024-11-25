@@ -1,0 +1,24 @@
+tr td {
+  padding: 0 0 0 0 !important;
+  margin: 0 !important;
+}
+
+.spacingtd {
+  padding: 0px 0px 0px 10px !important;
+  margin: 0 !important;
+}
+
+.spacing tr td {
+  padding: 0 10px 0 0 !important;
+  margin: 0 !important;
+}
+
+tr td > table tr td {
+	padding: 0 10px !important;
+  margin: 0 !important;
+}
+
+tr th {
+  padding: 0 10px !important;
+  margin: 0 !important;
+}

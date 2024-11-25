@@ -1,0 +1,230 @@
+@extends('layouts.backend.app')
+@section('content')
+<div id="overlay" style="display:none;">
+  <div class="spinner-border text-primary" role="status"></div>
+  <br/>
+  Loading...
+</div>
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-content header-elements-md-inline">
+    <div class="d-flex">
+      <div class="page-title">
+        <h4 class="font-weight-semibold">{{ $title }}</h4>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="content pt-0">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="row mb-4">
+            @include('backend.app.sales_order.form.form_top')
+          </div>
+          <div class="row mb-2">
+            <label class="col-md-1 col-form-label font-weight-semibold">Cari Item</label>
+            <div class="col-md-1">
+              {!! Form::text('whsCode',isset($warehouse) ? $warehouse : NULL,['class'=>'form-control form-control-sm','id'=>'whsCode','readonly'=>'']) !!}
+              <input type="hidden" name="U_CLASS" id="U_CLASS" value="{{ $U_CLASS }}">
+							<input type="hidden" id="company" value="{{ $company }}">
+							<input type="hidden" id="DocEntry" value="{{ $DocEntry }}">
+            </div>
+            <div class="col-md-2">
+              {!! Form::text('itemName',null,['class'=>'form-control form-control-sm','id'=>'itemName']) !!}
+            </div>
+          </div>
+					<div class="row mb-2">
+						<div class="col-md-12">
+							<a href="javascript:void(0)" class="btn btn-primary btn-sm discount" data-id="{{ $DocEntry }}">
+								<i class="icon-reset mr-2"></i> Discount Calculation
+							</a>
+						</div>
+					</div>
+          <div class="row mb-4">
+            <div class="col-md-12">
+              <div id="loadTable"></div>
+            </div>
+          </div>
+					<div class="row mb-3">
+            @include('backend.app.sales_order.form.form_bottom')
+          </div>
+					<div class="row ">
+						<div class="col-md-7">
+							<div class="row mb-2">
+								<label class="col-sm-3 col-form-label font-weight-semibold"></label>
+								<div class="col-sm-6">
+									<a href="javascript:void(0);" class="btn btn-md btn-primary save">Update</a>
+								</div>
+							</div>
+						</div>
+					</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="modalEx" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+</div>
+<div class="modal fade" id="modalEx2" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+</div>
+@endsection
+@section('customjs')
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".select2").select2();
+
+    $('.datepick').datepicker({
+    	autoClose:true
+    });
+
+    loadTable();
+
+    var swalInit = swal.mixin({
+      buttonsStyling: false,
+      customClass: {
+        confirmButton: 'btn btn-primary',
+        cancelButton: 'btn btn-light',
+        denyButton: 'btn btn-light',
+        input: 'form-control'
+      }
+    });
+
+    $("#itemName").on('keypress', function (e) {
+      var keycode = (e.keyCode ? e.keyCode : e.which);
+      if(keycode == '13'){
+        var company = $("#company").val();
+        var whsCode = $("#whsCode").val();
+        var itemName = $("#itemName").val();
+        var U_CLASS = $("#U_CLASS").val();
+				var DocEntry = $("#DocEntry").val();
+        var csrf = "{{ csrf_token() }}";
+        var url = '{{ route('backend.app.sales.searchItemUpdate') }}';
+        $.ajax({
+          url : url,
+          data  : {company:company,itemName:itemName,whsCode:whsCode,U_CLASS:U_CLASS,DocEntry:DocEntry,_token:csrf},
+          type : "POST",
+          success:function(response){
+            if (company=='') {
+              swalInit.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Maaf, perusahaan belum di pilih',
+                timer: 1500,
+                showCancelButton: false,
+                showConfirmButton: false
+              });
+            } else if (whsCode=='') {
+              swalInit.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Maaf, gudang belum di pilih',
+                timer: 1500,
+                showCancelButton: false,
+                showConfirmButton: false
+              });
+            } else {
+              $("#modalEx").html(response);
+              $("#modalEx").modal('show',{backdrop: 'true'});
+            }
+          }
+        });
+      }
+    });
+
+		$(".discount").click(function(e){
+			var id = $(this).data('id');
+			var csrf = "{!! csrf_token() !!}";
+      var url = '{{ route('backend.app.sales.discount') }}';
+			$.ajax({
+        url : url,
+        data  : {id:id, _token:csrf},
+				type : "POST",
+				success:function(response){
+					$("#modalEx2").html(response);
+          $("#modalEx2").modal('show',{backdrop: 'true'});
+				}
+			});
+		});
+
+		$(".save").click(function(e){
+			e.preventDefault();
+      $('#overlay').show();
+			var cardCode = $("#cardCode").val();
+      var docDate = $("#docDate").val();
+      var docDueDate = $("#docDueDate").val();
+      var numAtCard = $("#numAtCard").val();
+      var SalesPersonCode = $("#SalesPersonCode").val();
+      var Comments = $("#remarks").val();
+      var BplId = $("#BplId").val();
+      var Nopol1 = $("#Nopol1").val();
+      var Nopol2 = $("#Nopol2").val();
+			var company = $("#company").val();
+      var csrf = "{!! csrf_token() !!}";
+      var url = '{{ route('backend.app.sales.manual') }}';
+			$.ajax({
+        url : url,
+        data  : {
+          cardCode:cardCode,
+          docDate:docDate,
+          docDueDate:docDueDate,
+          numAtCard:numAtCard,
+          SalesPersonCode:SalesPersonCode,
+          Comments:Comments,
+          BplId:BplId,
+          Nopol1:Nopol1,
+          Nopol2:Nopol2,
+					company:company,
+          _token:csrf},
+        type : "POST",
+        dataType : "JSON",
+        success: function (response){
+          if (response.message=="sukses") {
+            var base = "{{ url('/backend/app/sales/detail/') }}";
+            var href = base+"/"+response.docnum;
+            $('#overlay').hide();
+            Swal.fire({
+              icon: 'success',
+              type: 'success',
+              title: 'Push dokumen berhasil !',
+              text: 'Anda akan di arahkan dalam 3 Detik',
+              timer: 1500,
+              showCancelButton: false,
+              showConfirmButton: false
+            }).then (function() {
+              window.location.href = href
+            });
+          } else {
+            $('#overlay').hide();
+            Swal.fire({
+              icon: 'error',
+              type: 'warning',
+              title: 'Oops...',
+              text: 'Error, harap cek history !',
+              timer: 3000,
+              showCancelButton: false,
+              showConfirmButton: false
+            });
+          }
+        }
+      });
+		});
+  });
+
+  function loadTable(){
+		var docEntry = $('#DocEntry').val();
+		var csrf = "{!! csrf_token() !!}";
+    var url = '{{ route('backend.app.sales.lines_table') }}';
+    $.ajax({
+      url: url,
+      data  : {docEntry:docEntry,_token:csrf},
+      type : "POST",
+      success : function(data){
+        $('#loadTable').html(data);
+      }
+    });
+  }
+
+</script>
+@endsection
